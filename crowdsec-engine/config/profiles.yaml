@@ -1,0 +1,23 @@
+name: default_ip_remediation
+filters:
+ - Alert.Remediation == true && Alert.GetScope() == "Ip"
+decisions:
+ - type: ban
+   duration: 24h
+# Escalating bans: 24h for 1st offence, 48h for 2nd, 72h for 3rd, etc.
+duration_expr: Sprintf("%dh", (GetDecisionsCount(Alert.GetValue()) + 1) * 24)
+# Uncomment and configure if using Matrix notifications:
+# notifications:
+#   - matrix_alerts
+on_success: break
+---
+name: default_range_remediation
+filters:
+ - Alert.Remediation == true && Alert.GetScope() == "Range"
+decisions:
+ - type: ban
+   duration: 24h
+duration_expr: Sprintf("%dh", (GetDecisionsCount(Alert.GetValue()) + 1) * 24)
+# notifications:
+#   - matrix_alerts
+on_success: break

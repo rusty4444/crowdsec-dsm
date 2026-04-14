@@ -1,0 +1,23 @@
+services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    environment:
+      TZ: "Australia/Sydney"
+      COLLECTIONS: "crowdsecurity/nginx crowdsecurity/http-cve crowdsecurity/linux"
+    volumes:
+      - ./config:/etc/crowdsec
+      - ./data:/var/lib/crowdsec/data
+      - ./acquis.d:/etc/crowdsec/acquis.d
+      - /var/log/nginx:/var/log/nginx:ro
+    ports:
+      # Expose on all interfaces so the firewall bouncer (--network host) can reach it
+      - "8080:8080"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

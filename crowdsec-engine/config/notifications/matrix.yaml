@@ -1,0 +1,35 @@
+# Matrix notification plugin for CrowdSec
+# Sends alerts to a Matrix room when bans are applied
+#
+# Prerequisites:
+# - A Matrix bot user account
+# - The bot must be invited to the target room
+# - An access token for the bot user
+#
+# To get an access token:
+#   curl -X POST "https://YOUR_MATRIX_SERVER/_matrix/client/v3/login" \
+#     -H "Content-Type: application/json" \
+#     -d '{"type":"m.login.password","user":"YOUR_BOT_USER","password":"YOUR_PASSWORD"}'
+
+type: http
+name: matrix_alerts
+log_level: info
+
+format: |
+  {{- range .}}
+  {{- $alert := .}}
+  {{- range .Decisions}}
+  {
+    "msgtype": "m.text",
+    "body": "🚨 CrowdSec Alert\nIP: {{.Value}}\nReason: {{$alert.Scenario}}\nAction: {{.Type}}\nDuration: {{.Duration}}\nCountry: {{$alert.Source.Cn}}\nAS: {{$alert.Source.AsName}}\nEvents: {{$alert.EventsCount}}"
+  }
+  {{- end}}
+  {{- end}}
+
+url: http://YOUR_MATRIX_SERVER:8008/_matrix/client/v3/rooms/YOUR_ROOM_ID/send/m.room.message
+
+method: POST
+
+headers:
+  Content-Type: application/json
+  Authorization: Bearer YOUR_ACCESS_TOKEN

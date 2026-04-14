@@ -1,0 +1,16 @@
+mode: iptables
+update_frequency: 10s
+log_mode: stdout
+log_level: info
+# Point to your CrowdSec engine's LAPI
+# Use the host IP (not localhost) since the bouncer runs with --network host
+api_url: http://YOUR_SERVER_IP:8080/
+# API key from: docker exec crowdsec cscli bouncers add firewall-bouncer
+api_key: YOUR_BOUNCER_API_KEY
+disable_ipv6: false
+deny_action: DROP
+iptables_chains:
+  - INPUT
+  - DOCKER-USER
+# DSM 6.x kernel only supports hash:ip ipset type
+ipset_type: hash:ip

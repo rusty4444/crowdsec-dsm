@@ -1,0 +1,5 @@
+#!/bin/bash
+# Wrapper for iptables-legacy that strips -m comment --comment <value> args
+# Required because DSM 6.x kernel (4.4.302) lacks the xt_comment module
+cleaned=$(echo "$@" | sed 's/-m comment --comment [^-]*//')
+exec /usr/sbin/iptables-legacy $cleaned

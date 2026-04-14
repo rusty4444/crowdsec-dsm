@@ -1,0 +1,8 @@
+# Add your Nginx log file paths here
+# These must match the log paths visible inside the container
+# (mapped via the /var/log/nginx volume mount)
+filenames:
+  - /var/log/nginx/access.log
+  - /var/log/nginx/error.log
+labels:
+  type: nginx

@@ -1,0 +1,6 @@
+# Don't commit the bouncer binary
+crowdsec-firewall-bouncer/bouncer-bin
+
+# CrowdSec runtime data
+crowdsec-engine/data/
+crowdsec-engine/config/hub/
