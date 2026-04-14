@@ -48,10 +48,12 @@ The DS218+ runs kernel 4.4.302+ which has several limitations this setup works a
 - Nginx (native Synology package or Docker) serving your sites
 - SSH access with sudo/root
 
+> **Note:** This guide uses `/volumeX/` as the volume path. Replace `X` with your actual volume number (e.g. `/volume1/`, `/volume2/`). You can check yours with `ls /volume*`.
+
 ## Directory Structure
 
 ```
-/volume1/docker/
+/volumeX/docker/
 ├── crowdsec/                          # CrowdSec engine
 │   ├── docker-compose.yml
 │   ├── config/                        # Bind-mounted to /etc/crowdsec
@@ -103,13 +105,13 @@ sudo chmod +x /usr/local/etc/rc.d/crowdsec-modules.sh
 Create the directory structure:
 
 ```bash
-sudo mkdir -p /volume1/docker/crowdsec/{config,data,acquis.d}
+sudo mkdir -p /volumeX/docker/crowdsec/{config,data,acquis.d}
 ```
 
 Copy `crowdsec-engine/docker-compose.yml` and `crowdsec-engine/acquis.d/nginx.yaml` to the appropriate locations.
 
 ```bash
-cd /volume1/docker/crowdsec
+cd /volumeX/docker/crowdsec
 sudo docker-compose up -d
 ```
 
@@ -135,8 +137,8 @@ Get your enroll key from [app.crowdsec.net](https://app.crowdsec.net).
 #### Download the bouncer binary
 
 ```bash
-sudo mkdir -p /volume1/docker/crowdsec-firewall-bouncer
-cd /volume1/docker/crowdsec-firewall-bouncer
+sudo mkdir -p /volumeX/docker/crowdsec-firewall-bouncer
+cd /volumeX/docker/crowdsec-firewall-bouncer
 
 # Download the latest release binary (Linux amd64)
 # Check https://github.com/crowdsecurity/cs-firewall-bouncer/releases for latest
@@ -166,7 +168,7 @@ Copy the following files from this repo's `crowdsec-firewall-bouncer/` directory
 #### Build and run
 
 ```bash
-cd /volume1/docker/crowdsec-firewall-bouncer
+cd /volumeX/docker/crowdsec-firewall-bouncer
 sudo docker build -t crowdsec-firewall-bouncer:local .
 sudo docker run -d \
   --name crowdsec-firewall-bouncer \
@@ -174,7 +176,7 @@ sudo docker run -d \
   --network host \
   --cap-add NET_ADMIN \
   --cap-add NET_RAW \
-  -v /volume1/docker/crowdsec-firewall-bouncer/crowdsec-firewall-bouncer.yaml:/etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml:ro \
+  -v /volumeX/docker/crowdsec-firewall-bouncer/crowdsec-firewall-bouncer.yaml:/etc/crowdsec/bouncers/crowdsec-firewall-bouncer.yaml:ro \
   crowdsec-firewall-bouncer:local
 ```
 
@@ -206,7 +208,7 @@ sudo docker exec crowdsec cscli bouncers list
 Create a custom whitelist so your own IPs are never banned:
 
 ```bash
-cat << 'EOF' | sudo tee /volume1/docker/crowdsec/config/parsers/s02-enrich/custom-whitelists.yaml
+cat << 'EOF' | sudo tee /volumeX/docker/crowdsec/config/parsers/s02-enrich/custom-whitelists.yaml
 name: custom/whitelists
 description: "Whitelist trusted IPs"
 whitelist:
