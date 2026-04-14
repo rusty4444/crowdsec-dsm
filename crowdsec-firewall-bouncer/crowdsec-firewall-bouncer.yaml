@@ -14,3 +14,5 @@ iptables_chains:
   - DOCKER-USER
 # DSM 6.x kernel only supports hash:ip ipset type
 ipset_type: hash:ip
+# DSM 6.x kernel lacks xt_comment module - disable rule comments
+iptables_add_rule_comments: false

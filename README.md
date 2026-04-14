@@ -8,7 +8,7 @@ CrowdSec's standard firewall bouncer installation assumes a modern Linux environ
 
 The DS218+ runs kernel 4.4.302+, which is too old for nftables, only supports the `hash:ip` ipset type, is missing the `xt_comment` iptables extension module entirely, and doesn't load the `xt_set` module needed for ipset matching by default. You can't install the bouncer natively because DSM doesn't have a package manager for arbitrary binaries, and the official install script fails.
 
-This guide runs both the CrowdSec engine and the firewall bouncer in Docker containers, with a custom-built bouncer image that works around every kernel limitation. The bouncer image forces `iptables-legacy` mode (since the default `iptables-nft` backend crashes immediately on this kernel), uses wrapper scripts that silently strip the unsupported `-m comment` iptables arguments that the bouncer insists on adding, and configures the `hash:ip` ipset type — the only one the kernel supports. A boot script ensures the required kernel modules are loaded before Docker starts the containers.
+This guide runs both the CrowdSec engine and the firewall bouncer in Docker containers, with a custom-built bouncer image that works around every kernel limitation. The bouncer image forces `iptables-legacy` mode (since the default `iptables-nft` backend crashes immediately on this kernel), disables iptables rule comments via an [undocumented config option](https://github.com/crowdsecurity/cs-firewall-bouncer/blob/bcb81cd563e813335a3141086b7f2fc5fe1a9725/pkg/cfg/config.go#L58) (the `xt_comment` module doesn't exist on this kernel), and configures the `hash:ip` ipset type — the only one the kernel supports. A boot script ensures the required kernel modules are loaded before Docker starts the containers.
 
 The result is a fully functional CrowdSec deployment that blocks malicious IPs at the iptables level for both host services (via the `INPUT` chain) and Docker containers (via the `DOCKER-USER` chain), with escalating ban durations and optional Matrix notifications — all on hardware that CrowdSec was never designed to run on.
 
@@ -38,7 +38,7 @@ The DS218+ runs kernel 4.4.302+ which has several limitations this setup works a
 |-------|------------|
 | `iptables-nft` not supported (no nf_tables) | Force `iptables-legacy` via `update-alternatives` in Docker image |
 | Only `hash:ip` ipset type available | Set `ipset_type: hash:ip` in bouncer config |
-| `xt_comment` kernel module missing | iptables wrapper scripts strip `-m comment` args |
+| `xt_comment` kernel module missing | Set `iptables_add_rule_comments: false` in bouncer config |
 | `xt_set` module not loaded by default | Boot script in `/usr/local/etc/rc.d/` to auto-load |
 
 ## Prerequisites
@@ -66,8 +66,6 @@ The DS218+ runs kernel 4.4.302+ which has several limitations this setup works a
 └── crowdsec-firewall-bouncer/         # Firewall bouncer
     ├── Dockerfile
     ├── bouncer-bin                    # Downloaded binary
-    ├── iptables-wrapper               # Wrapper to strip --comment args
-    ├── ip6tables-wrapper
     └── crowdsec-firewall-bouncer.yaml # Bouncer config
 ```
 
@@ -161,8 +159,6 @@ Save the API key it outputs — you'll need it for the bouncer config.
 
 Copy the following files from this repo's `crowdsec-firewall-bouncer/` directory:
 - `Dockerfile`
-- `iptables-wrapper`
-- `ip6tables-wrapper`
 - `crowdsec-firewall-bouncer.yaml` (update the `api_key` with the key from above)
 
 #### Build and run
@@ -252,7 +248,7 @@ The ipset package is missing from the Docker image. Ensure `ipset` is in the `ap
 The kernel only supports `hash:ip` ipset type. Set `ipset_type: hash:ip` in the bouncer config.
 
 ### `Extension comment revision 0 not supported, missing kernel module?`
-The `xt_comment` kernel module doesn't exist on DSM 6.x. The iptables wrapper scripts handle this by stripping `-m comment` arguments.
+The `xt_comment` kernel module doesn't exist on DSM 6.x. Set `iptables_add_rule_comments: false` in the bouncer config to disable rule comments.
 
 ### Bouncer shows "connection refused" to API
 Ensure the CrowdSec engine exposes port 8080 on all interfaces (`8080:8080` not `127.0.0.1:8080:8080` in docker-compose.yml), since the bouncer runs on the host network.
