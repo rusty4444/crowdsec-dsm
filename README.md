@@ -248,6 +248,20 @@ Ensure the CrowdSec engine exposes port 8080 on all interfaces (`8080:8080` not 
 ### DOCKER-USER chain warning
 If you see "The DOCKER-USER chain exists, but is not configured for use by the bouncer", add `DOCKER-USER` to `iptables_chains` in the bouncer config.
 
+### Console shows "No remediation component attached"
+
+![Console showing no remediation component](docs/console-no-remediation.jpg)
+
+This is a cosmetic issue only. The CrowdSec Console identifies remediation components by their user-agent string. Since we're running a raw bouncer binary inside a custom Docker image, the Console doesn't recognise it — even though the bouncer is actively connected and blocking IPs.
+
+You can verify the bouncer is working with:
+
+```bash
+sudo docker exec crowdsec cscli bouncers list
+```
+
+This should show the `firewall-bouncer` with a recent "Last API pull" timestamp and a ✔️ in the Valid column.
+
 ### Rules don't survive reboot
 Ensure `/usr/local/etc/rc.d/crowdsec-modules.sh` exists and is executable. The iptables rules are recreated each time the bouncer container starts, but the kernel modules must be loaded first.
 
