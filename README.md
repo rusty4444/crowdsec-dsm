@@ -273,6 +273,10 @@ This should show the `firewall-bouncer` with a recent "Last API pull" timestamp 
 ### Rules don't survive reboot
 Ensure `/usr/local/etc/rc.d/crowdsec-modules.sh` exists and is executable. The iptables rules are recreated each time the bouncer container starts, but the kernel modules must be loaded first.
 
+## Credits
+
+- [@LaurenceJJones](https://github.com/LaurenceJJones) for pointing out the undocumented `iptables_add_rule_comments` config option, which eliminated the need for iptables wrapper scripts
+
 ## License
 
 MIT
