@@ -2,6 +2,16 @@
 
 Complete guide for running CrowdSec with a firewall bouncer on Synology DSM 6.x (kernel 4.4.302+). This setup protects Nginx and Docker container services by blocking malicious IPs at the iptables level.
 
+## Why This Exists
+
+CrowdSec's standard firewall bouncer installation assumes a modern Linux environment with a recent kernel, nftables support, full ipset capabilities, and the ability to install packages via `apt`. Synology DSM 6.x on the DS218+ has none of these.
+
+The DS218+ runs kernel 4.4.302+, which is too old for nftables, only supports the `hash:ip` ipset type, is missing the `xt_comment` iptables extension module entirely, and doesn't load the `xt_set` module needed for ipset matching by default. You can't install the bouncer natively because DSM doesn't have a package manager for arbitrary binaries, and the official install script fails.
+
+This guide runs both the CrowdSec engine and the firewall bouncer in Docker containers, with a custom-built bouncer image that works around every kernel limitation. The bouncer image forces `iptables-legacy` mode (since the default `iptables-nft` backend crashes immediately on this kernel), uses wrapper scripts that silently strip the unsupported `-m comment` iptables arguments that the bouncer insists on adding, and configures the `hash:ip` ipset type — the only one the kernel supports. A boot script ensures the required kernel modules are loaded before Docker starts the containers.
+
+The result is a fully functional CrowdSec deployment that blocks malicious IPs at the iptables level for both host services (via the `INPUT` chain) and Docker containers (via the `DOCKER-USER` chain), with escalating ban durations and optional Matrix notifications — all on hardware that CrowdSec was never designed to run on.
+
 ## Architecture
 
 ```
