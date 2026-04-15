@@ -276,6 +276,7 @@ Ensure `/usr/local/etc/rc.d/crowdsec-modules.sh` exists and is executable. The i
 ## Credits
 
 - [@LaurenceJJones](https://github.com/LaurenceJJones) for pointing out the undocumented `iptables_add_rule_comments` config option, which eliminated the need for iptables wrapper scripts
+- AI used to assist with this setup
 
 ## License
 
